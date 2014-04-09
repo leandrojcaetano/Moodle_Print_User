@@ -10,6 +10,12 @@ echo "div#page-site-index div#page-wrap1, div#page-site-index div#page-wrap2, di
 div.region-content {
 	margin-top: -100px;
 }
+#nome-curso pre{
+	text-align: center;
+	font-size: 16pt;
+	font-family: inherit;
+	font-weight: bolder;
+}
 ";
 echo "</style>";
 
@@ -67,6 +73,16 @@ echo "</style>";
 
     $frontpagectx = context_course::instance(SITEID);
 
+	
+	// Action: Insere o nome do curso no topo da página
+	// Mod: Leandro Caetano
+	// Date: 24/03/2014
+	echo "<div id='nome-curso'>";
+	print_object($COURSE->fullname);
+	echo "</div>";
+	// Fim da alteração
+	
+	
     if ($isfrontpage) {
         $PAGE->set_pagelayout('admin');
         require_capability('moodle/site:viewparticipants', $systemcontext);
