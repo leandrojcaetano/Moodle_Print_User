@@ -1,7 +1,25 @@
 <?php
 
+echo "<script type='text/javascript'>
+<!--
+window.print();
+//-->
+</script>
+";
+
+
 echo "<style>";
-echo "div#page-site-index div#page-wrap1, div#page-site-index div#page-wrap2, div#page-wrap1, div#page-wrap2 {
+echo "
+@page
+{
+size: landscape;
+margin: 2cm;
+}
+
+tbody{
+	font-size: 12px;
+}
+div#page-site-index div#page-wrap1, div#page-site-index div#page-wrap2, div#page-wrap1, div#page-wrap2 {
 	background: none;
 }
 #region-header #logo, #region-header #logo_peq, #page-footer, #page-header, .headermain, .breadcrumb {
@@ -18,6 +36,8 @@ div.region-content {
 }
 ";
 echo "</style>";
+
+
 
 //  Lists all the users within a given course
 
@@ -73,15 +93,10 @@ echo "</style>";
 
     $frontpagectx = context_course::instance(SITEID);
 
-	
-	// Action: Insere o nome do curso no topo da página
-	// Mod: Leandro Caetano
-	// Date: 24/03/2014
+	//require_capability('Capabilities/moodle/course:changefullname', $context); 
 	echo "<div id='nome-curso'>";
 	print_object($COURSE->fullname);
 	echo "</div>";
-	// Fim da alteração
-	
 	
     if ($isfrontpage) {
         $PAGE->set_pagelayout('admin');
@@ -120,7 +135,8 @@ echo "</style>";
 
   //  $bulkoperations = has_capability('moodle/course:bulkmessaging', $context);
 
-    $countries = get_string_manager()->get_list_of_countries();
+  // Removendo País
+  //  $countries = get_string_manager()->get_list_of_countries();
 
     $strnever = get_string('never');
 
@@ -338,7 +354,11 @@ echo "</style>";
 
     $tablecolumns = array('userpic', 'fullname');
     $extrafields = get_extra_user_fields($context);
-    $tableheaders = array(get_string('userpic'), get_string('fullnameuser'));
+   // $tableheaders = array(get_string('userpic'), get_string('fullnameuser'));
+   
+   //Muda cabecalho da coluna Foto do Usuario para Foto
+   $tableheaders = array("Foto", get_string('fullnameuser'));
+   
     if ($mode === MODE_BRIEF) {
         foreach ($extrafields as $field) {
             $tablecolumns[] = $field;
@@ -349,10 +369,14 @@ echo "</style>";
         $tablecolumns[] = 'city';
         $tableheaders[] = get_string('city');
     }
-    if ($mode === MODE_BRIEF && !isset($hiddenfields['country'])) {
-        $tablecolumns[] = 'country';
-        $tableheaders[] = get_string('country');
-    }
+	
+  // Removendo País
+  
+   // if ($mode === MODE_BRIEF && !isset($hiddenfields['country'])) {
+    //    $tablecolumns[] = 'country';
+    //    $tableheaders[] = get_string('country');
+   // }
+   
     if (!isset($hiddenfields['lastaccess'])) {
         $tablecolumns[] = 'lastaccess';
         $tableheaders[] = get_string('lastaccess');
@@ -362,6 +386,10 @@ echo "</style>";
         $tablecolumns[] = 'select';
         $tableheaders[] = get_string('select');
     }
+	
+	//Acrescenta a coluna assinatura
+	$tablecolumns[] = 'assinatura';
+    $tableheaders[] = "Assinatura";
 
     $table = new flexible_table('user-index-participants-'.$course->id);
     $table->define_columns($tablecolumns);
@@ -399,24 +427,27 @@ echo "</style>";
     list($esql, $params) = get_enrolled_sql($context, NULL, $currentgroup, true);
     $joins = array("FROM {user} u");
     $wheres = array();
-
+	
+	// Removido o campo Country
     $extrasql = get_extra_user_fields_sql($context, 'u', '', array(
-            'id', 'username', 'firstname', 'lastname', 'email', 'city', 'country',
+            'id', 'username', 'firstname', 'lastname', 'email', 'city',
             'picture', 'lang', 'timezone', 'maildisplay', 'imagealt', 'lastaccess'));
 
+	// Removido o campo Country		
     if ($isfrontpage) {
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
-                          u.email, u.city, u.country, u.picture,
+                          u.email, u.city, u.picture,
                           u.lang, u.timezone, u.maildisplay, u.imagealt,
                           u.lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // everybody on the frontpage usually
         if ($accesssince) {
             $wheres[] = get_user_lastaccess_sql($accesssince);
         }
-
+		
+	// Removido o campo Country
     } else {
         $select = "SELECT u.id, u.username, u.firstname, u.lastname,
-                          u.email, u.city, u.country, u.picture,
+                          u.email, u.city, u.picture,
                           u.lang, u.timezone, u.maildisplay, u.imagealt,
                           COALESCE(ul.timeaccess, 0) AS lastaccess$extrasql";
         $joins[] = "JOIN ($esql) e ON e.id = u.id"; // course enrolled users only
@@ -558,7 +589,10 @@ echo "</style>";
         if ($totalcount < 1) {
             echo $OUTPUT->heading(get_string('nothingtodisplay'));
         } else {
-            if ($totalcount > $perpage) {
+		
+		  // Removendo os filtros de Nome e Sobrenome
+		  
+          /*  if ($totalcount > $perpage) {
 
                 $firstinitial = $table->get_initial_first();
                 $lastinitial  = $table->get_initial_last();
@@ -569,9 +603,11 @@ echo "</style>";
 
                 echo '<div class="initialbar firstinitial">'.get_string('firstname').' : ';
                 if(!empty($firstinitial)) {
-                    echo '<a href="'.$baseurl->out().'&amp;sifirst=">'.$strall.'</a>';
+					echo 'kkk1';
+                    //echo '<a href="'.$baseurl->out().'&amp;sifirst=">'.$strall.'</a>';
                 } else {
-                    echo '<strong>'.$strall.'</strong>';
+				echo 'kkk2';
+                    //echo '<strong>'.$strall.'</strong>';
                 }
                 foreach ($alpha as $letter) {
                     if ($letter == $firstinitial) {
@@ -603,7 +639,7 @@ echo "</style>";
                 $pagingbar->pagevar = 'spage';
                 echo $OUTPUT->render($pagingbar);
             }
-
+*/
             if ($matchcount > 0) {
                 $usersprinted = array();
                 foreach ($userlist as $user) {
@@ -616,8 +652,9 @@ echo "</style>";
 
                     $context = context_course::instance($course->id);
                     $usercontext = context_user::instance($user->id);
-
-                    $countries = get_string_manager()->get_list_of_countries();
+					
+					// Removendo País
+                    //$countries = get_string_manager()->get_list_of_countries();
 
                     /// Get the hidden field list
                     if (has_capability('moodle/course:viewhiddenuserfields', $context)) {
@@ -662,12 +699,17 @@ echo "</style>";
                         if ($user->city && !isset($hiddenfields['city'])) {
                             $row->cells[1]->text .= $user->city;
                         }
+						
+						// Removendo País
+						  
+						/*
                         if (!empty($countries[$user->country]) && !isset($hiddenfields['country'])) {
                             if ($user->city && !isset($hiddenfields['city'])) {
                                 $row->cells[1]->text .= ', ';
                             }
                             $row->cells[1]->text .= $countries[$user->country];
-                        }
+                        }*/
+						
                         $row->cells[1]->text .= '<br />';
                     }
 
@@ -721,7 +763,9 @@ echo "</style>";
         }
 
     } else {
-        $countrysort = (strpos($sort, 'country') !== false);
+	
+	  // Removendo País
+     //   $countrysort = (strpos($sort, 'country') !== false);
         $timeformat = get_string('strftimedate');
 
 
@@ -741,8 +785,9 @@ echo "</style>";
                 } else {
                     $lastaccess = $strnever;
                 }
-
-                if (empty($user->country)) {
+				
+				// Removendo País
+				/*if (empty($user->country)) {
                     $country = '';
 
                 } else {
@@ -753,16 +798,18 @@ echo "</style>";
                         $country = $countries[$user->country];
                     }
                 }
-
+				*/
                 $usercontext = context_user::instance($user->id);
 
                 if ($piclink = ($USER->id == $user->id || has_capability('moodle/user:viewdetails', $context) || has_capability('moodle/user:viewdetails', $usercontext))) {
-                    $profilelink = '<strong><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'&amp;course='.$course->id.'">'.fullname($user).'</a></strong>';
+				// Removendo link do nome do aluno
+                //    $profilelink = '<strong><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'&amp;course='.$course->id.'">'.fullname($user).'</a></strong>';
+					$profilelink = '<strong>'.fullname($user).'</strong>';
                 } else {
                     $profilelink = '<strong>'.fullname($user).'</strong>';
                 }
 
-                $data = array ($OUTPUT->user_picture($user, array('size' => 35, 'courseid'=>$course->id)), $profilelink);
+                $data = array ($OUTPUT->user_picture($user, array('size' => 20, 'courseid'=>$course->id)), $profilelink);
 
                 if ($mode === MODE_BRIEF) {
                     foreach ($extrafields as $field) {
@@ -772,9 +819,11 @@ echo "</style>";
                 if ($mode === MODE_BRIEF && !isset($hiddenfields['city'])) {
                     $data[] = $user->city;
                 }
+			    // Removendo País
+				/*
                 if ($mode === MODE_BRIEF && !isset($hiddenfields['country'])) {
                     $data[] = $country;
-                }
+                }*/
                 if (!isset($hiddenfields['lastaccess'])) {
                     $data[] = $lastaccess;
                 }
@@ -803,6 +852,9 @@ echo "</style>";
                 /*if ($bulkoperations) {
                     $data[] = '<input type="checkbox" class="usercheckbox" name="user'.$user->id.'" />';
                 }*/
+				
+				// Acrescentando espaco em branco na assinatura
+				$data[] = '<span style="display:inline-block; width: 220px;"></span>';
                 $table->add_data($data);
             }
         }
